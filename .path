@@ -1,0 +1,21 @@
+
+export PATH="/usr/local/bin:/usr/local/sbin:/usr/local/mysql/bin:$PATH"
+
+export GDFONTPATH="/Library/Fonts"
+
+export GEM_PATH="/usr/local/lib/ruby/gems/1.8"
+export GEM_HOME="/usr/local/lib/ruby/gems/1.8"
+export NODE_PATH="/usr/local/bin/node:/usr/local/lib/node_modules"
+# Settings for Mapnik.framework Installer to enable Mapnik programs and python bindings
+# export PATH=/Library/Frameworks/Mapnik.framework/Programs:$PATH
+# export PYTHONPATH=/Library/Frameworks/Mapnik.framework/Python:$PYTHONPATH
+
+export TDBROOT="$HOME/local/tdb"
+export JENAROOT="$HOME/local/jena"
+export JOSEKIROOT="$HOME/local/joseki"
+export CLASSPATH=$CLASSPATH:$TDBROOT/lib
+export CLASSPATH=$CLASSPATH:$JENAROOT/lib
+export PATH=$TDBROOT/bin:$PATH
+# Setting PATH for Python 2.7
+# The orginal version is saved in .bash_profile.pysave
+export PATH="/Library/Frameworks/Python.framework/Versions/2.7/bin:${PATH}"

@@ -1,0 +1,209 @@
+function cdl { cd $1; ls;}
+
+# Create a new directory and enter it
+function mkd() {
+   mkdir -p "$@" && cd "$@"
+}
+
+# Use Git’s colored diff when available
+hash git &>/dev/null
+if [ $? -eq 0 ]; then
+	function diff() {
+		git diff --no-index --color-words "$@"
+	}
+fi
+
+# Create a data URL from a file
+function dataurl() {
+   local mimeType=$(file -b --mime-type "$1")
+   if [[ $mimeType == text/* ]]; then
+      mimeType="${mimeType};charset=utf-8"
+   fi
+   echo "data:${mimeType};base64,$(openssl base64 -in "$1" | tr -d '\n')"
+}
+
+extract () {
+  if [ -f $1 ] ; then
+    case $1 in
+      *.tar.bz2)   tar xjf $1     ;;
+      *.tar.gz)    tar xzf $1     ;;
+      *.bz2)       bunzip2 $1     ;;
+      *.rar)       unrar e $1     ;;
+      *.gz)        gunzip $1      ;;
+      *.tar)       tar xf $1      ;;
+      *.tbz2)      tar xjf $1     ;;
+      *.tgz)       tar xzf $1     ;;
+      *.zip)       unzip $1       ;;
+      *.Z)         uncompress $1  ;;
+      *.7z)        7z x $1        ;;
+      *)     echo "'$1' cannot be extracted via extract()" ;;
+       esac
+   else
+       echo "'$1' is not a valid file"
+  fi
+}
+
+# Start an HTTP server from a directory, optionally specifying the port
+function server() {
+   local port="${1:-8000}"
+   sleep 1 && open "http://localhost:${port}/" &
+   # Set the default Content-Type to `text/plain` instead of `application/octet-stream`
+   # And serve everything as UTF-8 (although not technically correct, this doesn’t break anything for binary files)
+   python -c $'import SimpleHTTPServer;\nmap = SimpleHTTPServer.SimpleHTTPRequestHandler.extensions_map;\nmap[""] = "text/plain";\nfor key, value in map.items():\n\tmap[key] = value + ";charset=UTF-8";\nSimpleHTTPServer.test();' "$port"
+}
+
+# Test if HTTP compression (RFC 2616 + SDCH) is enabled for a given URL.
+# Send a fake UA string for sites that sniff it instead of using the Accept-Encoding header. (Looking at you, ajax.googleapis.com!)
+function httpcompression() {
+	encoding="$(curl -LIs -H 'User-Agent: Mozilla/5 Gecko' -H 'Accept-Encoding: gzip,deflate,compress,sdch' "$1" | grep '^Content-Encoding:')" && echo "$1 is encoded using ${encoding#* }" || echo "$1 is not using any encoding"
+}
+
+# Gzip-enabled `curl`
+function gurl() {
+	curl -sH "Accept-Encoding: gzip" "$@" | gunzip
+}
+
+# Syntax-highlight JSON strings or files
+function json() {
+	if [ -p /dev/stdin ]; then
+		# piping, e.g. `echo '{"foo":42}' | json`
+		python -mjson.tool | pygmentize -l javascript
+	else
+		# e.g. `json '{"foo":42}'`
+		python -mjson.tool <<< "$*" | pygmentize -l javascript
+	fi
+}
+
+# All the dig info
+function digga() {
+	dig +nocmd "$1" any +multiline +noall +answer
+}
+
+# Escape UTF-8 characters into their 3-byte format
+function escape() {
+	printf "\\\x%s" $(printf "$@" | xxd -p -c1 -u)
+	echo # newline
+}
+
+# Decode \x{ABCD}-style Unicode escape sequences
+function unidecode() {
+	perl -e "binmode(STDOUT, ':utf8'); print \"$@\""
+	echo # newline
+}
+
+# Get a character’s Unicode code point
+function codepoint() {
+	perl -e "use utf8; print sprintf('U+%04X', ord(\"$@\"))"
+	echo # newline
+}
+
+# Add note to Notes.app (OS X 10.8)
+# Usage: `note 'foo'` or `echo 'foo' | note`
+function note() {
+   local text
+   if [ -t 0 ]; then # argument
+      text="$1"
+   else # pipe
+      text=$(cat)
+   fi
+   body=$(echo "$text" | sed -E 's|$|<br>|g')
+   osascript >/dev/null <<EOF
+tell application "Notes"
+   tell account "iCloud"
+      tell folder "Notes"
+         make new note with properties {name:"$text", body:"$body"}
+      end tell
+   end tell
+end tell
+EOF
+}
+
+# Add reminder to Reminders.app (OS X 10.8)
+# Usage: `remind 'foo'` or `echo 'foo' | remind`
+function remind() {
+   local text
+   if [ -t 0 ]; then
+      text="$1" # argument
+   else
+      text=$(cat) # pipe
+   fi
+   osascript >/dev/null <<EOF
+tell application "Reminders"
+   tell the default list
+      make new reminder with properties {name:"$text"}
+   end tell
+end tell
+EOF
+}
+
+function term() {
+   #!/bin/sh
+   #
+   # Open a new Mac OS X terminal window or tab in the current or another
+   # directory and optionally run a command in the new window or tab.
+   #
+   # - Without any arguments, the new terminal window opens in
+   #   the current directory, i.e. the executed command is "cd $PWD".
+   # - If the first argument is a directory, the new terminal will "cd" into
+   #   that directory before executing the remaining arguments as command.
+   # - The optional "-t" flag executes the command in a new tab
+   #   instead of a new window.
+   # - The optional "-x" flag closes the new window or tab
+   #   after the executed command finishes.
+   # - The optional "-p" flag takes an argument of the form x,y (e.g. 40,50) and
+   #   positions the terminal window to the indicated location on the screen
+   # - The optional "-s" flag takes an argument of the form w,h (e.g. 800,400) and
+   #   resizes the terminal window to the indicated width and height in pixels.
+   #
+   # Written by Marc Liyanage <http://www.entropy.ch>
+   #
+   # Version 2.1
+   #
+
+   set -e
+
+   while getopts xtp:s: OPTION; do
+   [ $OPTION = "x" ] && { EXIT='; exit'; }
+   [ $OPTION = "t" ] && { TAB=1; }
+   [ $OPTION = "p" ] && { POSITION="set position of window 1 to {$OPTARG}"; }
+   [ $OPTION = "s" ] && { SIZE="set size of window 1 to {$OPTARG}"; }
+   done
+
+   for (( $OPTIND; $OPTIND-1; OPTIND=$OPTIND-1 )); do shift; done
+
+   if [[ -d "$1" ]]; then WD=$(cd "$1"; pwd); shift; else WD=$PWD; fi
+
+
+   COMMAND="cd '$WD' && echo -n \$'\\\\ec';"
+   for i in "$@"; do
+   	COMMAND="$COMMAND '$i'"
+   done
+
+   if [ $TAB ]; then
+
+osascript 2>/dev/null <<EOF
+	tell application "System Events"
+		tell process "Terminal" to keystroke "t" using command down
+	end
+	tell application "Terminal"
+		activate
+		do script with command "$COMMAND $EXIT" in window 1
+		$POSITION
+		$SIZE
+	end tell
+EOF
+
+else
+
+#osascript 2>/dev/null <<EOF
+osascript <<EOF
+	tell application "Terminal"
+		activate
+		do script with command "$COMMAND $EXIT"
+		$POSITION
+		$SIZE
+	end tell
+EOF
+
+fi
+}
