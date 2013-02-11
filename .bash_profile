@@ -1,4 +1,7 @@
 
+# If not running interactively, don't do anything
+[ -z "$PS1" ] && return
+
 # Load the shell dotfiles, and then some:
 # * ~/.path can be used to extend `$PATH`.
 # * ~/.extra can be used for other settings you don’t want to commit.
