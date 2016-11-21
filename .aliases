@@ -1,3 +1,6 @@
+# python3 mac
+alias python2="/Library/Frameworks/Python.framework/Versions/2.7/bin/python"
+
 # Easier navigation: .., ..., ...., ....., ~ and -
 alias ..="cd .."
 alias ...="cd ../.."
@@ -27,7 +30,8 @@ alias st='git status'
 alias com='git commit -a'
 alias acom='git commit -a --amend'
 alias br='git branch'
-alias sw='git checkout'
+alias up='git checkout'
+alias new='git checkout -b'
 
 # Detect which `ls` flavor is in use
 if ls --color > /dev/null 2>&1; then # GNU `ls`

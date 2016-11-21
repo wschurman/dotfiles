@@ -20,3 +20,6 @@ export MANPAGER="less -X"
 
 # customs
 export WEBTREE_ENV="development"
+export DEV_ENV="true"
+
+export PYTHONPATH=/usr/local/lib/python2.7/site-packages:$PYTHONPATH
