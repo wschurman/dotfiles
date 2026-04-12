@@ -1,18 +1,1 @@
 
-export PATH="/usr/local/bin:/usr/local/sbin:/usr/local/git/bin:/usr/local/mysql/bin:$PATH"
-
-export GDFONTPATH="/Library/Fonts"
-
-export NODE_PATH="/usr/local/bin/node:/usr/local/lib/node_modules"
-
-export TDBROOT="$HOME/local/tdb"
-export JENAROOT="$HOME/local/jena"
-export JOSEKIROOT="$HOME/local/joseki"
-export CLASSPATH=$CLASSPATH:$TDBROOT/lib
-export CLASSPATH=$CLASSPATH:$JENAROOT/lib
-export PATH=$TDBROOT/bin:$PATH
-# Setting PATH for Python 2.7
-# The orginal version is saved in .bash_profile.pysave
-export PATH="/usr/local/bin:/Library/Frameworks/Python.framework/Versions/2.7/bin:${PATH}"
-
-export PATH=/usr/local/php5/bin:$PATH
