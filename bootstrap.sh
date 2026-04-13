@@ -8,6 +8,7 @@ function doIt() {
 		--exclude ".osx" \
 		--exclude ".macos" \
 		--exclude "bootstrap.sh" \
+		--exclude ".gitignore" \
 		--exclude "README.md" \
 		-avh --no-perms . ~;
 	source ~/.bash_profile;
