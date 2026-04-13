@@ -13,13 +13,6 @@ alias g="git"
 alias s="subl ."
 alias oo="o"
 
-# specifics
-alias ds='dandelion status'
-alias ddep='dandelion deploy'
-alias ddepd='dandelion deploy --dry-run'
-
-alias mate='subl'
-
 alias st='git status'
 alias com='git commit -a'
 alias acom='git commit -a --amend'
